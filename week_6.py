@@ -2,6 +2,19 @@ from tkinter.tix import X_REGION
 import numpy as np
 import matplotlib.pyplot as plt
 
+def transform_polynomial_basis_2d(x, order):
+    assert len(x) == 2, "x should be 2 dimensions"
+    if order == 0:
+        return 1
+    elif order == 1:
+        return np.concatenate([np.array([1]),x])
+    elif order == 2:
+        return np.concatenate([np.array([1]),x,np.array([x[0]**2]),np.array([x[0]*x[1]]),np.array([x[1]**2])])
+    elif order == 3:
+        np.concatenate([np.array([1]),x,np.array([x[0]**2]),np.array([x[0]*x[1]]),np.array([x[1]**2]),np.array([x[0]**3]),np.array(x[0]**2 * x[1]),np.array([x[1]**3]),np.array([x[1]**2 * x[0]])])
+    else:
+        raise ValueError("Doesn't support orders higher than 3")
+
 
 def linear_classify(x, theta, theta_0):
     """Uses the given theta, theta_0, to linearly classify the given data x. This is our hypothesis or hypothesis class.
@@ -83,6 +96,8 @@ def random_linear_classifier(data, labels, params={}, hook=None):
     
 
 
+
+
 def perceptron_with_offset(data, labels, params={}, hook=None):
     """The Perceptron learning algorithm.
 
@@ -109,8 +124,8 @@ def perceptron_with_offset(data, labels, params={}, hook=None):
                 theta = theta + y_i * X_i
                 theta_0 - theta_0 + y_i
 
-    return theta, theta_0
-
+    return theta, theta_0 
+    
 
 
 def perceptron(data, labels, params={}, hook=None):
@@ -138,8 +153,11 @@ def perceptron(data, labels, params={}, hook=None):
             if y_i * (theta.T @ X_i) <=0:
                 theta = theta + y_i * X_i
 
+                if hook: hook((theta))
+
     return theta
-    
+
+
 
 
 def plot_separator(plot_axes, theta, theta_0):
@@ -185,6 +203,8 @@ if __name__ == '__main__':
                   [5, 2, 6, 5]])
     y = np.array([[1, -1, 1, -1]])
 
+    X_augmented = np.insert(X, X.shape[0],[1],axis=0)
+
     # To test your algorithm on a larger dataset, uncomment the following code. It generates uniformly distributed
     # random data in 2D, along with their labels.
     # X = np.random.uniform(low=-5, high=5, size=(2, 20))  # d=2, n=20
@@ -214,9 +234,10 @@ if __name__ == '__main__':
 
     # Run the RLC or Perceptron: (uncomment the following lines to call the learning algorithms)
     #theta, theta_0 = random_linear_classifier(X, y, {"k": 100},hook=None)
-    theta, theta_0 = perceptron_with_offset(X, y, {"T": 1000}, hook=None)
+    theta, theta_0 = perceptron_with_offset(X, y, {"T": 100}, hook=None)
+    theta_augmented  = perceptron(X_augmented,y,{"T":100},hook=None)
     # Plot the returned separator:
-    plot_separator(ax, theta, theta_0)
+    plot_separator(ax, theta_augmented, 0)
 
     # Run the RLC, plot E_n over various k:
     # Todo: Your code
@@ -237,3 +258,4 @@ if __name__ == '__main__':
 
     print("Finished.")
 
+    input()
