@@ -49,10 +49,10 @@ def transform_polynomial_basis_1d(x, order):
         return [1, x]
     if order==2:
         # Todo: Implement the polynomial basis for k=2:
-        return None
+        return [1, x, x**2]
     if order==3:
         # Todo: And for k=3:
-        return None
+        return [1, x, x**2, x**3]
 
 
 def data_linear_trivial():
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     # Exercise 2: Least Squares Regression
     # -----------
     # Get some example data (browse the file to see the various data_* functions provided):
-    X, Y = data_linear_trivial()
+    X, Y = data_quadratic()
 
     # Create a plot and set up some default plot options:
     fig, ax = plt.subplots()
@@ -150,36 +150,36 @@ if __name__ == '__main__':
     ax.axvline(color='black', linewidth=0.5)
     ax.set_title("Least squares regression")
     # Todo: Plot the data here (ex. 2.2)
-    # ...
+    ax.plot(X, Y, '+')
 
     # Todo: Feature transformation, add column of ones
-    X_augmented = None
-
+    #X_augmented = np.insert(X,X.shape[1],[1],axis=1)
+    X_augmented = np.array([transform_polynomial_basis_1d(x[0],order=2) for x in X])
     # Exercise 2.2: Todo: Compute theta* using the analytical OLS solution:
     # ------------
-    theta_star = None
+    theta_star = np.linalg.inv(X_augmented.T @ X_augmented) @ X_augmented.T @ Y
 
     # Todo: Plot the resulting hypothesis into the plot:
-    # plot_line_2d(...)
+    #plot_line_2d(ax, theta_star,'g-')
 
     # Exercise 2.3 - Solution using gradient descent:
     # ------------
 
     # Todo: Implement the loss function:
     def squared_loss(x, y, theta):
-        return None
+        return (np.dot(theta.T,x)-y)**2
 
     # Todo: Implement the OLS objective function (using the loss):
     def ols_objective(X, Y, theta):
-        return None
+        return np.mean((np.dot((np.dot(X,theta)-Y).T,np.dot(X,theta)-Y)))
 
     # Todo: Implement the partial derivative of the squared loss w.r.t. theta
     def d_squared_loss_theta(x, y, theta):
-        return None
+        return (2/ x.shape[0]) * x.T @ (x @theta -y)
 
     # Todo: Implement the partial derivative of the OLS objective w.r.t. theta (using the partial derivative of the squared loss):
     def d_ols_objective_theta(x, y, theta):
-        return None
+        return d_squared_loss_theta(x,y,theta)
 
     # Finally, the gradient of our OLS objective is simply d_ols_objective_theta (as theta is our only parameter):
     def ols_objective_grad(X, Y, theta):
@@ -194,17 +194,17 @@ if __name__ == '__main__':
         return ols_objective_grad(X_augmented, Y, theta)
 
     # Todo: Set an initial value for theta_init:
-    theta_init = 0
+    theta_init = np.zeros((X_augmented.shape[1],1))
 
     # We define a step size function - let's return a constant step size, independent of the iteration i:
     def step_size_fn(i):
-        return None  # Todo: Experiment with various step sizes
+        return 0.001  # Todo: Experiment with various step sizes
     # Now we're ready to run gradient descent to minimise f_ols:
-    last_x, fs, xs = gradient_descent(f_ols, df_ols, theta_init, step_size_fn=step_size_fn, max_iter=50)
+    last_x, fs, xs = gradient_descent(f_ols, df_ols, theta_init, step_size_fn=step_size_fn, max_iter=250)
 
     # Todo: Plot the found hypothesis into the figure with the data.
     # Todo: Also plot individual steps of gradient descent, to see how the optimisation behaves.
-    # plot_line_2d(...)
+    plot_line_2d(ax, last_x, 'r-')
     # ...
 
     # Exercise 2.3 iii):
@@ -214,6 +214,14 @@ if __name__ == '__main__':
 
     # Optional: Exercise 2.4
     # Ex. 2.4 (b) iii): Plot the polynomial separator in 2D:
-    # ...
+    x_plot = np.arange(-10,10,0.1)
+    y_plot = []
+    for x_p in x_plot:
+        x_p_aug = np.array(transform_polynomial_basis_1d(x_p, order=2))
+        y_p = theta_star.T @ x_p_aug.T
+        y_plot.append(y_p)
+    
+    ax.plot(x_plot, y_plot, 'g-')
+
 
     print("Finished.")
